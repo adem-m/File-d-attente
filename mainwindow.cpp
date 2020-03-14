@@ -44,8 +44,9 @@ MainWindow::MainWindow() : QWidget()
     connect(boutonEffacer, SIGNAL(clicked()), this, SLOT(effacer()));
     connect(timerSecondes, SIGNAL(timeout()), this, SLOT(decompte()));
     connect(timerSecondes, SIGNAL(timeout()), this, SLOT(actualiser()));
-    connect(this, SIGNAL(nouvelleRequete(QVector<QString>)), this, SLOT(envoiCommandes(QVector<QString>)));
-    connect(this, SIGNAL(nouveauMessage(int)), this, SLOT(afficherMessage(int)));
+    connect(this, SIGNAL(nouvelleRequete(QVector<QString>)), this, SLOT(verifications(QVector<QString>)));
+    connect(this, SIGNAL(nouveauMessage(int, QVector<QString>)), this, SLOT(afficherMessage(int, QVector<QString>)));
+    connect(this, SIGNAL(continuerEnvoi(QVector<QString>)), this, SLOT(envoiCommandes(QVector<QString>)));
 }
 void MainWindow::ajouter(QString prenom, QString forme, int duree)
 {
@@ -92,8 +93,6 @@ void MainWindow::effacer()
         if(!listeCommandes.isEmpty())
         {
             emit nouvelleRequete(listeCommandes[0]);
-            //            thread = new std::thread(&MainWindow::envoiCommandes, this, listeCommandes[0]);
-            //            thread->join();
         }
     }
 }
@@ -181,8 +180,6 @@ void MainWindow::actualiser()
             if(listeCommandes.isEmpty())
             {
                 emit nouvelleRequete(commandes);
-                //                thread = new std::thread(&MainWindow::envoiCommandes, this, commandes);
-                //                thread->join();
             }
             listeCommandes.push_back(commandes);
         }
@@ -241,21 +238,30 @@ QVector<QString> MainWindow::decoupageCommandes(QString code)
     }
     return liste;
 }
-void MainWindow::envoiCommandes(QVector<QString> liste)
+void MainWindow::verifications(QVector<QString> liste)
 {
-
-    thread = new std::thread([liste, this](){
-        QVector<QString> liste2;
-        liste2 = liste;
-
-        if(liste2.size()<6)
+    if(QSerialPortInfo::availablePorts().isEmpty())
+    {
+        QMessageBox::warning(this, "Avertissement", "Robot non détecté. Veuillez vérifier qu'il est bien branché et sous tension.");
+    }
+    else
+    {
+        if(liste.size()<6)
         {
-            emit nouveauMessage(1);
+            emit nouveauMessage(1, liste);
         }
         else
         {
-            emit nouveauMessage(2);
+            emit nouveauMessage(2, liste);
         }
+    }
+}
+void MainWindow::envoiCommandes(QVector<QString> liste)
+{
+    thread = new std::thread([liste, this]()
+    {
+        QVector<QString> liste2;
+        liste2 = liste;
         bool bi = true;
         if(port == NULL)
         {
@@ -280,7 +286,7 @@ void MainWindow::envoiCommandes(QVector<QString> liste)
                     }
                     else
                     {
-                        emit nouveauMessage(3);
+                        emit nouveauMessage(3, liste);
                     }
                 }
             }
@@ -297,14 +303,16 @@ void MainWindow::envoiReset()
     QSqlQuery query("insert into requetes (forme) values ('reset')", db);
     db.close();
 }
-void MainWindow::afficherMessage(int n)
+void MainWindow::afficherMessage(int n, QVector<QString> liste)
 {
     switch (n) {
     case 1:
         QMessageBox::information(this, "Reset", "Un reset du robot va être effectué, veuillez cliquer sur Ok pour le lancer.");
+        emit continuerEnvoi(liste);
         break;
     case 2:
         QMessageBox::information(this, "Nouvelle requête", "Un nouveau patron va être imprimé, veuillez vous assurer qu'une feuille vierge est en place sur le robot puis cliquez sur Ok pour lancer l'impression.\n\nForme : " + listeRequetes[0].forme + "\nNom : " + listeRequetes[0].prenom);
+        emit continuerEnvoi(liste);
         break;
     case 3:
         QMessageBox::critical(this, "Erreur critique", "Une erreur est survenue lors de l'impression.");
