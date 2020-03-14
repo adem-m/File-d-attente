@@ -45,6 +45,7 @@ MainWindow::MainWindow() : QWidget()
     connect(timerSecondes, SIGNAL(timeout()), this, SLOT(decompte()));
     connect(timerSecondes, SIGNAL(timeout()), this, SLOT(actualiser()));
     connect(this, SIGNAL(nouvelleRequete(QVector<QString>)), this, SLOT(envoiCommandes(QVector<QString>)));
+    connect(this, SIGNAL(nouveauMessage(int)), this, SLOT(afficherMessage(int)));
 }
 void MainWindow::ajouter(QString prenom, QString forme, int duree)
 {
@@ -249,11 +250,11 @@ void MainWindow::envoiCommandes(QVector<QString> liste)
 
         if(liste2.size()<6)
         {
-            //            QMessageBox::information(this, "Reset", "Un reset du robot va être effectué, veuillez cliquer sur Ok pour le lancer");
+            emit nouveauMessage(1);
         }
         else
         {
-            //            QMessageBox::information(this, "Nouvelle requête", "Un nouveau patron va être imprimé, veuillez vous assurer qu'une feuille vierge est en place sur le robot puis cliquez sur Ok pour lancer l'impression.\n\nForme : " + listeRequetes[0].forme + "\nNom : " + listeRequetes[0].prenom);
+            emit nouveauMessage(2);
         }
         bool bi = true;
         if(port == NULL)
@@ -279,7 +280,7 @@ void MainWindow::envoiCommandes(QVector<QString> liste)
                     }
                     else
                     {
-                        //QMessageBox::critical(this, "Erreur critique", "Une erreur est survenue lors de l'impression.");
+                        emit nouveauMessage(3);
                     }
                 }
             }
@@ -287,7 +288,6 @@ void MainWindow::envoiCommandes(QVector<QString> liste)
         port->clear();
         port->close();
     });
-    thread->join();
 }
 void MainWindow::envoiReset()
 {
@@ -296,4 +296,20 @@ void MainWindow::envoiReset()
     db.open();
     QSqlQuery query("insert into requetes (forme) values ('reset')", db);
     db.close();
+}
+void MainWindow::afficherMessage(int n)
+{
+    switch (n) {
+    case 1:
+        QMessageBox::information(this, "Reset", "Un reset du robot va être effectué, veuillez cliquer sur Ok pour le lancer.");
+        break;
+    case 2:
+        QMessageBox::information(this, "Nouvelle requête", "Un nouveau patron va être imprimé, veuillez vous assurer qu'une feuille vierge est en place sur le robot puis cliquez sur Ok pour lancer l'impression.\n\nForme : " + listeRequetes[0].forme + "\nNom : " + listeRequetes[0].prenom);
+        break;
+    case 3:
+        QMessageBox::critical(this, "Erreur critique", "Une erreur est survenue lors de l'impression.");
+        break;
+    default:
+        break;
+    }
 }

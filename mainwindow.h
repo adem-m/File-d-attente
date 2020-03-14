@@ -41,9 +41,11 @@ public slots:
     void ouvrirHistorique();
     void envoiCommandes(QVector<QString> liste);
     void envoiReset();
+    void afficherMessage(int n);
 
 signals:
     void nouvelleRequete(QVector<QString>);
+    void nouveauMessage(int n);
 
 private:
     QGridLayout *grille;
