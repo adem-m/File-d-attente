@@ -2,6 +2,9 @@
 
 histoWindow::histoWindow() : QDialog()
 {
+    setWindowIcon(QIcon("icon.png"));
+    deleteResets = new QPushButton("Supprimer les resets");
+
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("rcharly.sqlite");
     db.open();
@@ -22,6 +25,7 @@ histoWindow::histoWindow() : QDialog()
 
     layout = new QVBoxLayout;
     layout->addWidget(affichage);
+    layout->addWidget(deleteResets, 0, Qt::AlignLeft);
     affichage->setModel(modele);
     affichage->hideColumn(0);
     affichage->setColumnWidth(4, 150);
@@ -29,5 +33,17 @@ histoWindow::histoWindow() : QDialog()
 
     setLayout(layout);
 
-    setMinimumSize(720, 500);
+    setMinimumSize(723, 500);
+
+    connect(deleteResets, SIGNAL(clicked()), this, SLOT(deleteQuery()));
+}
+void histoWindow::deleteQuery()
+{
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("rcharly.sqlite");
+    db.open();
+    QSqlQuery query("delete from requetes where forme = 'reset'", db);
+    modele->select();
+    affichage->setModel(modele);
+    db.close();
 }

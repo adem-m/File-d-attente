@@ -2,6 +2,8 @@
 
 MainWindow::MainWindow() : QWidget()
 {
+    setWindowIcon(QIcon("icon.png"));
+
     if(QSerialPortInfo::availablePorts().isEmpty())
     {
         QMessageBox::warning(this, "Avertissement", "Robot non détecté. Veuillez vérifier qu'il est bien branché et sous tension.");
@@ -10,10 +12,10 @@ MainWindow::MainWindow() : QWidget()
     compteur = 0;
     setWindowTitle("Liste d'attente");
 
-    boutonReset = new QPushButton("&Reset");
-    boutonEffacer = new QPushButton("&Effacer");
+    boutonReset = new QPushButton("&Envoyer un reset");
+    boutonEffacer = new QPushButton("&Annuler la requête en cours");
+    boutonEffacer->setEnabled(false);
     boutonHistorique = new QPushButton("&Historique des requêtes");
-    champ = new QLineEdit;
 
     noms = new QLabel("<h1>Nom</h1>");
     forme = new QLabel("<h1>Forme choisie</h1>");
@@ -21,7 +23,6 @@ MainWindow::MainWindow() : QWidget()
     temps->setAlignment(Qt::AlignCenter);
 
     boutonBox = new QHBoxLayout;
-    boutonBox->addWidget(champ);
     boutonBox->addWidget(boutonReset);
     boutonBox->addWidget(boutonEffacer);
 
@@ -69,6 +70,7 @@ void MainWindow::ajouter(QString prenom, QString forme, int duree)
     listeTimersAffiches[listeTimersAffiches.size()-1]->setSegmentStyle(QLCDNumber::Flat);
     listeTimersAffiches[listeTimersAffiches.size()-1]->setFixedHeight(30);
     grille->addWidget(listeTimersAffiches[listeTimersAffiches.size()-1], compteur+1, 3, Qt::AlignTop);
+    boutonEffacer->setEnabled(true);
 }
 void MainWindow::effacer()
 {
@@ -93,6 +95,10 @@ void MainWindow::effacer()
         if(!listeCommandes.isEmpty())
         {
             emit nouvelleRequete(listeCommandes[0]);
+        }
+        else
+        {
+            boutonEffacer->setEnabled(false);
         }
     }
 }
@@ -243,6 +249,7 @@ void MainWindow::verifications(QVector<QString> liste)
     if(QSerialPortInfo::availablePorts().isEmpty())
     {
         QMessageBox::warning(this, "Avertissement", "Robot non détecté. Veuillez vérifier qu'il est bien branché et sous tension.");
+//        effacer();
     }
     else
     {
@@ -315,7 +322,7 @@ void MainWindow::afficherMessage(int n, QVector<QString> liste)
         emit continuerEnvoi(liste);
         break;
     case 3:
-        QMessageBox::critical(this, "Erreur critique", "Une erreur est survenue lors de l'impression.");
+        QMessageBox::critical(this, "Erreur critique", "Une erreur est survenue lors de l'impression. Veuillez relancer le logiciel pour la recommencer.");
         break;
     default:
         break;

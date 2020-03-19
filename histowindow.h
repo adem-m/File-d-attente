@@ -4,8 +4,10 @@
 #include <QWidget>
 #include <QDialog>
 #include <QSqlTableModel>
+#include <QSqlQuery>
 #include <QTableView>
 #include <QVBoxLayout>
+#include <QPushButton>
 
 class histoWindow : public QDialog
 {
@@ -13,10 +15,14 @@ class histoWindow : public QDialog
 public:
     histoWindow();
 
+public slots:
+    void deleteQuery();
+
 private:
     QSqlTableModel *modele;
     QTableView *affichage;
     QVBoxLayout *layout;
+    QPushButton *deleteResets;
 };
 
 #endif // HISTOWINDOW_H

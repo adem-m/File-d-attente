@@ -7,7 +7,6 @@
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
-#include <QLineEdit>
 #include <QLabel>
 #include <QTimer>
 #include <QLCDNumber>
@@ -55,7 +54,6 @@ private:
     QPushButton *boutonReset;
     QPushButton *boutonEffacer;
     QPushButton *boutonHistorique;
-    QLineEdit *champ;
     QLabel *noms;
     QLabel *forme;
     QLabel *temps;
