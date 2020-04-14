@@ -203,7 +203,7 @@ void MainWindow::setTermineBDD(int i)
 }
 bool MainWindow::isIdNew(int id)
 {
-    bool bi = true;
+    bool check = true;
 
     if(!listeRequetes.isEmpty())
     {
@@ -211,11 +211,11 @@ bool MainWindow::isIdNew(int id)
         {
             if(listeRequetes[i].id == id)
             {
-                bi = false;
+                check = false;
             }
         }
     }
-    return bi;
+    return check;
 }
 void MainWindow::ouvrirHistorique()
 {
@@ -269,7 +269,7 @@ void MainWindow::envoiCommandes(QVector<QString> liste)
     {
         QVector<QString> liste2;
         liste2 = liste;
-        bool bi = true;
+        bool check = true;
         if(port == NULL)
         {
             port = new QSerialPort(QSerialPortInfo::availablePorts()[0].portName());
@@ -280,16 +280,16 @@ void MainWindow::envoiCommandes(QVector<QString> liste)
         {
             for(int i=0; i<liste2.size(); i++)
             {
-                if(bi)
+                if(check)
                 {
-                    bi = false;
+                    check = false;
                     liste2[i] += "\r";
                     QThread::msleep(200);
                     port->write(liste2[i].toStdString().c_str());
                     port->waitForReadyRead();
                     if(port->read(1)[0] == '0')
                     {
-                        bi = true;
+                        check = true;
                     }
                     else
                     {
